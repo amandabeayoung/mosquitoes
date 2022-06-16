@@ -14,7 +14,9 @@ library(shinyBS)
 ##csv files
 #setwd("C:/Users/Amanda B. Young/Documents/R/mosquitoes")
 NEON_Mos<-read.csv("data/NEON_mosquitoes.csv")
-All_MM<-read.csv("data/All_Mos.csv")
+#All_MM<-read.csv("data/All_Mos.csv")
+All_ind<-read.csv("data/Individual_Mos_count.csv")
+
 ### Make bug tags for map
 awesome <- makeAwesomeIcon(
   icon = "bug",
@@ -32,18 +34,26 @@ df <- data.frame(
 
 ui <- fluidPage(
   navbarPage(title = "Alaskan Mosquitoes", theme = shinytheme("superhero"),
-             tabPanel("Learning Objectives", fluid = TRUE,
+             tabPanel("Start Here!", fluid = TRUE,
                       withTags(
+                        column(12,
+                        h2("Bzzzz"),
+                        p("- what would Alaska summers be without mosquitoes? Even though we might not enjoy their presence when trying to enjoy the outdoors, mosquitoes play an important role especially in arctic ecosystems. Forming dense clouds during the growing season, they help distribute plant pollen, provide a food source for migratory nesting birds and can impact the migration paths of caribou.  
+                          This learning tool provides you with some basic information on mosquito biology. The data displayed here were collected by the National Ecological Observatory Network (NEON) at five sites along a latitudinal gradient in Alaska [link or button for “Methods” tab]. You can explore data on the abundance and timing of several mosquito species common to the Arctic and analyze connected temperature and soil moisture information [link or button for “Data exploration” tab].  
+                          After completing the learning activities, you will be able to"),
                         ul(
-                          li("Describe the mosquito life cycle including aquatic and terrestrial developmental stages."),
-                          li("Compare and contrast seasonal changes in mosquito biomass of local species with different life history strategies."),
-                          li("Explore and analyze data of abiotic variables to help explain seasonal changes in mosquito biomass."),
-                          li("Evaluate how a changing climate might affect Alaska mosquito populations in the future.")
+                          li("describe the mosquito life cycle including aquatic and terrestrial developmental stages"),
+                          li("compare and contrast seasonal changes in mosquito biomass of local species with different life history strategies"),
+                          li("explore data of abiotic variables to help explain seasonal changes in mosquito biomass"),
+                          li("evaluate how a changing climate might affect Alaska mosquito populations in the future")
                         )
-                      )),
+                      ))),
              tabPanel("About Mosquitoes", fluid = TRUE,
                       withTags(   
                         fluidRow(
+                          column(12,
+                                 p("With their narrow wings and long thin legs, mosquitoes belong to the group of two-winged flies (",
+                                 a(href="https://observer.globe.gov/documents/19589576/7b0bfffa-e66d-4587-98fb-fe24602e0d18", "GLOBE Observer",.noWS = "outside"),". There are more than 3,500 species of mosquitoes that vary in their food and habitat preferences, behavior patterns and host species they visit. All mosquito species require aquatic habitats with preferably stagnant water. The life cycle diagram shows that mosquitoes go through four life stages: egg, larva, pupa and winged adult. Once the female mosquito has secured enough protein via a blood meal, she deposits eggs on the water surface. The eggs hatch into larvae that feed and grow larger. The non-feeding pupa stage then develops into adults. Depending on the species, mosquitoes can overwinter as eggs, larvae or adults. You might have observed “fat, drunk” mosquitoes at the beginning of summer, which overwinter as adults and are the first to be active during the growing season. Other mosquito species overwinter as eggs and need to undergo several life-cycle stages before emerging as adults later in the season. If you would like to learn how to identify the larvae and adults, please take a look at this ",a(href="https://observer.globe.gov/documents/19589576/e4afb7bd-6f16-4825-90b6-5953cc9cec8d", "GLOBE mosquito identification (pdf).", .noWS = "outside"))),
                           column(7,
                                  h4("Types of Mosquitoes in Alaska"),
                                  h5(p("There are 4 genera of mosquitoes in Alaska:")),
@@ -76,18 +86,21 @@ ui <- fluidPage(
                                             p(""),
                                             li("Sites"),
                                             ul(
-                                              li("Utkiagvik"),
-                                              li("Toolik Field Station"),
-                                              li("Bonanza Creek"),
-                                              li("Delta Juntion"),
-                                              li("Healy"))))),
+                                              li(a(href="https://www.neonscience.org/field-sites/barr","BARR - Utkiagvik (formerly Barrow)")),
+                                              li(a(href="https://www.neonscience.org/field-sites/took", "TOOK - Toolik Field Station")),
+                                              li(a(href="https://www.neonscience.org/field-sites/bona","BONA - Bonanza Creek (at Caribou-Poker Creeks)")),
+                                              li(a(href="https://www.neonscience.org/field-sites/deju","DEJU - Delta Juntion")),
+                                              li(a(href="https://www.neonscience.org/field-sites/heal","HEAL - Healy")))))),
                                  column(10,
                                         class = "basic",
                                         a(class="ui blue ribbon label", "NEON Mosquito Plots"),
                                         leafletOutput("map")
                                  )),
                         tabPanel("Lab Methods", fluid = TRUE,
-                                 titlePanel("Lab Methods"))
+                                 titlePanel("Lab Methods"),
+                                 withTags(
+                                   p("Following collection, mosquito samples are sent to an external facility where they are sorted to remove bycatch and taxonomically identified (to species and sex, whenever possible). In the case of large field samples, a subsample of up to 200 individual mosquitoes is taxonomically identified but both total weights of the field collected sample and the subsample are provided to inform estimates of total abundance.")
+                                 ))
              ),
              tabPanel("Data Exploration",
                       sidebarLayout(
@@ -111,8 +124,12 @@ ui <- fluidPage(
                                       value = c(2019,2022))
                         ),
                         mainPanel(
+                          withTags(
+                            p("Each point on the graph represents how many mosquitoes were collected on a given day. On the left side of the page you can select data based on location and by species. Do you see any patterns?")
+                          ),
                           withSpinner(plotOutput(outputId = "test")),
-                          tags$sub(tags$em("NEON (National Ecological Observatory Network). Mosquitoes sampled from CO2 traps, RELEASE-2022 (DP1.10043.001)")                          
+                          tags$sub(tags$em("NEON (National Ecological Observatory Network). Mosquitoes sampled from CO2 traps, RELEASE-2022 (DP1.10043.001)"),
+                                   tags$p("Species identification occured on a subset of mosquitoes, based on the weight of the subset we extrapolated the number of individuals per species for this figure.")
                           )
                         )
                       )
@@ -169,21 +186,12 @@ server <- function(input, output, session) {
   }, deleteFile = F)
   
   
-  
-  output$akdatum_img <- renderImage({
-    
-    list(src = "www/akdatum.jpg",
-         width = "10%")
-    
-  }, deleteFile = F)
-  
-  
-  
+
   NEON_mosquito <- reactive({
     req(input$siteIDfinder)
     req(input$genusfinder)
     req(input$range)
-    filter(All_MM, family == "Culicidae") %>% 
+    filter(All_ind) %>% 
       filter(siteID %in% input$siteIDfinder) %>%
       filter(genus %in% input$genusfinder) %>%
       filter(Year >= input$range[1], Year <= input$range[2]) 
@@ -198,15 +206,18 @@ server <- function(input, output, session) {
   output$test <- renderPlot({
     ggplot(data = NEON_mosquito(),
            aes(x = doy, 
-               y = individualCount, 
+               y = totalSpeciesCount, 
                colour=genus,
                shape = siteID)) +
       geom_point()+
-      labs(y = "Mosquito Count (individual)", x = "Day of Year") +
-      lims(x=c(100,300), y=c(0,250))+
+      labs(y = "Mosquito Count ", x = "Day of Year") +
+      lims(x=c(100,300))+
       theme_bw()
   })
   
 }
 
+
 shinyApp(ui = ui, server = server)
+
+
